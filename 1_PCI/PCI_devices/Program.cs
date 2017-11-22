@@ -7,13 +7,44 @@ namespace PCI_devices
 {
     class lsPCI
     {
-        static string vendor = "", device = "";
+        static string STATUS_EMPTY = "";
+
+        static string vendorName = STATUS_EMPTY,
+                      deviceName = STATUS_EMPTY;
+
+        private static void ParseReport(IEnumerable<string> sampleReport,
+                                                string sampleVendorID,
+                                                string sampleDeviceID)
+        {
+            foreach (var line in sampleReport)
+            {
+                if (line.StartsWith(sampleVendorID) && 
+                    vendorName == STATUS_EMPTY)
+                {
+                    vendorName = line.Substring(6);
+                    continue;
+                }
+
+                if (line.StartsWith("\t" + sampleDeviceID) && 
+                    vendorName != STATUS_EMPTY)
+                {
+                    deviceName = line.Substring(7);
+                    break;
+                }
+            }
+
+            if(vendorName == STATUS_EMPTY)
+            {
+                vendorName = "NOT_FOUND";
+                deviceName = "NOT_FOUND";
+            }
+        }
 
         static void Main(string[] args)
         {
             string vendorID, deviceID;
 
-            var report = File.ReadLines("reports.csv");
+            var report = File.ReadLines("pci.ids");
             var sercher = new ManagementObjectSearcher("root\\CIMV2", 
                                                        "SELECT * FROM Win32_PnPEntity");
 
@@ -21,48 +52,16 @@ namespace PCI_devices
             {
                 if (queryDevice["DeviceID"].ToString().Substring(0, 3) == "PCI")
                 {
-                    vendorID = "0x" + queryDevice["DeviceID"].ToString().Substring(8, 4);
-                    deviceID = "0x" + queryDevice["DeviceID"].ToString().Substring(17, 4);
-                    FindVendorAndDevice(report,
-                                        vendorID,
-                                        deviceID,
-                                        queryDevice["Description"].ToString());
+                    vendorID = queryDevice["DeviceID"].ToString().Substring(8, 4).ToLower();
+                    deviceID = queryDevice["DeviceID"].ToString().Substring(17, 4).ToLower();
+                    ParseReport(report,
+                                vendorID,
+                                deviceID);
 
-                    Console.WriteLine("Vendor: {0}({1})", vendorID, vendor);
-                    Console.WriteLine("Device: {0}({1})", deviceID, device);
+                    Console.WriteLine("Vendor: 0x{0}({1})", vendorID, vendorName);
+                    Console.WriteLine("Device: 0x{0}({1})", deviceID, deviceName);
                     Console.WriteLine();                    
                 }
-            }
-        }
-
-        private static void FindVendorAndDevice(IEnumerable<string> sampleReport,
-                                         string sampleVendorID,
-                                         string sampleDeviceID,
-                                         string sampleDescription)
-        {
-            foreach (var line in sampleReport)
-            {
-                String[] arrayLines = line.Replace("\"", "").Split(',');
-
-                if (arrayLines[0].Equals(sampleVendorID))
-                {
-                    vendor = arrayLines[2];
-                    if (arrayLines[1].Equals(sampleDeviceID))
-                    {
-                        device = arrayLines[4];
-                        return;
-                    }
-                }
-            }
-
-            if (vendor != "")
-            {
-                device = sampleDescription;
-            }
-            else
-            {
-                vendor = "unknown";
-                device = "unknown";
             }
         }
     }
