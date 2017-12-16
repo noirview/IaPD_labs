@@ -11,35 +11,14 @@ namespace _3_Battery
         Timer updateTimer = new Timer();
         //static int DEFAULT_TIMEOUT = 5;
 
-        private static int GetScreenTime()
-        {
-            const string command = "c powercfg /q";
-            Process cmd = new Process
-            {
-                StartInfo =
-                {
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    WindowStyle = ProcessWindowStyle.Hidden,
-                    FileName = "cmd.exe",
-                    Arguments = command
-                }
-            };
-            cmd.Start();
-
-            var powerSchemes = cmd.StandardOutput.ReadToEnd();
-            var someString = new Regex("VIDEOIDLE.*\\n.*\\n.*\\n.*\\n.*\\n.*\\n.*");
-            var videoidle = someString.Match(powerSchemes).Value;
-            return Convert.ToInt32(videoidle.Substring(videoidle.Length - 11).TrimEnd(), 16) / 60;
-        }
-
-        int DEFAULT_TIMEOUT = GetScreenTime();
-
         public static void SetPowerTimeout(int minutes)
         {
             var process = new Process();
             process.StartInfo.FileName = "cmd.exe";
             process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+
+
+
             process.StartInfo.Arguments = "/c powercfg /x -monitor-timeout-dc " + minutes;
             process.Start();
         }
@@ -74,9 +53,10 @@ namespace _3_Battery
             label2.Text         = GetTime(SystemInformation.PowerStatus.BatteryLifeRemaining);
             progressBar1.Value  =   (int)(SystemInformation.PowerStatus.BatteryLifePercent * 100);
 
+
             if (SystemInformation.PowerStatus.BatteryLifeRemaining == -1)
             {
-                SetPowerTimeout(DEFAULT_TIMEOUT);
+                SetPowerTimeout(noteBattery.GetDefaultTimeout());
                 label2.Text = "";
             }
 
@@ -90,7 +70,7 @@ namespace _3_Battery
 
         private void Form1_FormClosing(object sender, EventArgs e)
         {
-            SetPowerTimeout(DEFAULT_TIMEOUT);
+            SetPowerTimeout(noteBattery.GetDefaultTimeout());
         }
     }
 }
