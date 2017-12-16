@@ -8,6 +8,7 @@ namespace _3_Battery
     {
         Battery noteBattery = new Battery();
         Timer updateTimer = new Timer();
+        int DEFAULT_TIMEOUT = 5;
 
         public static void SetPowerTimeout(int minutes)
         {
@@ -18,13 +19,13 @@ namespace _3_Battery
             process.Start();
         }
 
-        private static String getTime(int remainingTime)
+        private static String GetTime(int remainingTime)
         {
             int sec = remainingTime % 60;
             int min = remainingTime / 60 % 60;
             int hours = remainingTime / 3600 % 24;
-            int days = remainingTime / 3600 / 24;
-            return String.Format("{0} days {1} hours {2} minutes {3} seconds", days, hours, min, sec);
+            //int days = remainingTime / 3600 / 24;
+            return String.Format("{0} hours {1} minutes {2} seconds", hours, min, sec);
         }
 
             public Form1()
@@ -33,6 +34,7 @@ namespace _3_Battery
             updateTimer.Interval = 1000;
             updateTimer.Tick += new EventHandler(updateTimer_Tick);
             updateTimer.Start();
+            Application.ApplicationExit += new EventHandler(this.Form1_FormClosing);
         }
 
         void updateTimer_Tick(object sender, EventArgs e)
@@ -44,12 +46,12 @@ namespace _3_Battery
         {
             label1.Text         =        (SystemInformation.PowerStatus.BatteryLifePercent * 100).ToString() + "% " + 
                                           SystemInformation.PowerStatus.PowerLineStatus;
-            label2.Text         = getTime(SystemInformation.PowerStatus.BatteryLifeRemaining);
+            label2.Text         = GetTime(SystemInformation.PowerStatus.BatteryLifeRemaining);
             progressBar1.Value  =   (int)(SystemInformation.PowerStatus.BatteryLifePercent * 100);
 
             if (SystemInformation.PowerStatus.BatteryLifeRemaining == -1)
             {
-                SetPowerTimeout(5);
+                SetPowerTimeout(DEFAULT_TIMEOUT);
                 label2.Text = "";
             }
 
@@ -59,6 +61,11 @@ namespace _3_Battery
         {
             int minutes = Int32.Parse(textBox1.Text);
             SetPowerTimeout(minutes);
+        }
+
+        private void Form1_FormClosing(object sender, EventArgs e)
+        {
+            SetPowerTimeout(DEFAULT_TIMEOUT);
         }
     }
 }

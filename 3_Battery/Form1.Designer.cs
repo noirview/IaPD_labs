@@ -1,4 +1,6 @@
-﻿namespace _3_Battery
+﻿using System;
+
+namespace _3_Battery
 {
     partial class Form1
     {
@@ -98,6 +100,8 @@
             this.Name = "Form1";
             this.Text = "BatteryInformation";
             this.Load += new System.EventHandler(this.Form1_Load);
+            //this.Resize += new System.EventHandler(this.Form1_Resize);
+            //this.Closing += new System.EventHandler(this.Form1_FormClosing);
             ((System.ComponentModel.ISupportInitialize)(this.errorProvider1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
