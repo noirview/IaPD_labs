@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace _3_Battery
@@ -8,7 +9,31 @@ namespace _3_Battery
     {
         Battery noteBattery = new Battery();
         Timer updateTimer = new Timer();
-        int DEFAULT_TIMEOUT = 5;
+        //static int DEFAULT_TIMEOUT = 5;
+
+        private static int GetScreenTime()
+        {
+            const string command = "c powercfg /q";
+            Process cmd = new Process
+            {
+                StartInfo =
+                {
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    FileName = "cmd.exe",
+                    Arguments = command
+                }
+            };
+            cmd.Start();
+
+            var powerSchemes = cmd.StandardOutput.ReadToEnd();
+            var someString = new Regex("VIDEOIDLE.*\\n.*\\n.*\\n.*\\n.*\\n.*\\n.*");
+            var videoidle = someString.Match(powerSchemes).Value;
+            return Convert.ToInt32(videoidle.Substring(videoidle.Length - 11).TrimEnd(), 16) / 60;
+        }
+
+        int DEFAULT_TIMEOUT = GetScreenTime();
 
         public static void SetPowerTimeout(int minutes)
         {
