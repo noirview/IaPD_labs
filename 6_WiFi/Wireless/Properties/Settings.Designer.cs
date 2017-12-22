@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace IPD_Lab6_WiFi.Properties
+namespace Wireless.Properties
 {
 
 
